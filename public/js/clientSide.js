@@ -67,11 +67,12 @@ function analysisImage()
 
 function checkImage(data1, data2)
 {
-	return true;
-	if (data1.length != data2.length) return false;
 	console.log(data1[0])
 	console.log(data1[1])
 	console.log(data1[2])
+	return true;
+	if (data1.length != data2.length) return false;
+	
 	if (data1[0] == 123 && data1[1] == 123 && data1[2] == 123)
 	{
 		if (data2[0] == 321 && data2[1] == 321 && data2[2] == 321)
@@ -132,21 +133,13 @@ function mergeImage()
 				var d2 = pictureData[i+1];
 				var d3 = pictureData[i+2];
 				
-				var invert = formatData[i+2] / 100;
-				if (invert == 0) d1 = 255 - d1;
-				else if (invert == 1) d2 = 255 - d2;
-				else d3 = 255 - d2;
+				var r1 = formatData[i+0];
+				var r2 = formatData[i+1];
+				var r3 = formatData[i+2];
 				
-				var temp;
-				var swipe = formatData[i+1] / 100;
-				if (swipe == 0) { temp = d2; d2 = d3; d3 = temp; }
-				else if (swipe == 1) { temp = d1; d1 = d3; d3 = temp; }
-				else { temp = d1; d1 = d2; d2 = temp; }
-				
-				var multiply = formatData[i+0] / 100;
-				d1 = d1 * multiply;
-				d2 = d2 * multiply;
-				d3 = d3 * multiply;
+				d1 = (d1 - r1 + 255) % 255;
+				d2 = (d2 + r2) % 255;
+				d3 = (d3 - r3 + 255) % 255;
 				
 				imgData.data[i+0] = d1;
 				imgData.data[i+1] = d2;
@@ -157,7 +150,7 @@ function mergeImage()
 			ctx.putImageData(imgData, 0, 0);
 		
 			//convert to png and set it to the tag
-			var outImage = resultCanvas.toDataURL("image/jpg");
+			var outImage = resultCanvas.toDataURL("image/jpeg");
 	
 			$('#first_result').attr('src', outImage);
 		}
@@ -206,32 +199,24 @@ function splitImage()
 		}
 		for (var i = 4; i < pixelData.length; i += 4)
 		{	
-			//imgData2[0] will decide number to divide
-			//imgData2[1] will decide which number to swipe
-			//imgData2[2] will finally decide which number to invert
-			var divide = getRandomInt(3);
-			var swipe = getRandomInt(3);
-			var invert = getRandomInt(3);
+			var d1 = pixelData[i+0];
+			var d2 = pixelData[i+1];
+			var d3 = pixelData[i+2];
 			
-			var d1 = pixelData[i+0] / divide;
-			var d2 = pixelData[i+1] / divide;
-			var d3 = pixelData[i+2] / divide;
+			var r1 = getRandomInt(255);
+			var r2 = getRandomInt(255);
+			var r3 = getRandomInt(255);
 			
-			var temp;
-			if (swipe == 0) { temp = d2; d2 = d3; d3 = temp; }
-			else if (swipe == 1) { temp = d1; d1 = d3; d3 = temp; }
-			else { temp = d1; d1 = d2; d2 = temp; }
-			
-			if (invert == 0) d1 = 255 - d1;
-			else if (invert == 1) d2 = 255 - d2;
-			else if (invert == 2) d3 = 255 - d3;
+			d1 = (d1 + r1) % 255;
+			d2 = (d2 - r2 + 255) % 255;
+			d3 = (d3 + r3) % 255;
 			
 			imgData.data[i+0] = d1;
 			imgData.data[i+1] = d2;
 			imgData.data[i+2] = d3;
-			imgData2.data[i+0] = divide * 100 + getRandomInt(100);
-			imgData2.data[i+1] = swipe * 100 + getRandomInt(100);
-			imgData2.data[i+2] = invert * 100 + getRandomInt(100);
+			imgData2.data[i+0] = r1;
+			imgData2.data[i+1] = r2;
+			imgData2.data[i+2] = r3;
 			
 			imgData.data[i+3] = 255;
 			imgData2.data[i+3] = 255;
@@ -240,8 +225,8 @@ function splitImage()
 		ctx2.putImageData(imgData2, 0, 0);
 		
 		//convert to png and set it to the tag
-		var outImage1 = resultCanvas1.toDataURL("image/jpg");
-		var outImage2 = resultCanvas2.toDataURL("image/jpg");
+		var outImage1 = resultCanvas1.toDataURL("image/jpeg");
+		var outImage2 = resultCanvas2.toDataURL("image/jpeg");
 	
 		$('#first_result').attr('src', outImage1);
 		$('#second_result').attr('src', outImage2);
