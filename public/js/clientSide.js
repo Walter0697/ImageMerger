@@ -11,7 +11,6 @@ $(document).ready(function(){
 
 function imageHandler(input, place)
 {
-	console.log("uploaded");
 	if (input.files && input.files[0])
 	{
 		var reader = new FileReader();
@@ -67,22 +66,18 @@ function analysisImage()
 
 function checkImage(data1, data2)
 {
-	console.log(data1[0])
-	console.log(data1[1])
-	console.log(data1[2])
-	return true;
 	if (data1.length != data2.length) return false;
 	
-	if (data1[0] == 123 && data1[1] == 123 && data1[2] == 123)
+	if (data1[0] + data1[1] + data1[2] >= 60 && data1[0] + data1[1] + data1[2] <= 75)
 	{
-		if (data2[0] == 321 && data2[1] == 321 && data2[2] == 321)
+		if (data2[0] + data2[1] + data2[2] >= 90 && data2[0] + data2[1] + data2[2] <= 100)
 			return 2;
 		else
 			return false;
 	}
-	else if (data1[0] == 321 && data1[1] == 321 && data1[2] == 321)
+	else if (data1[0] + data1[0] + data1[0] >= 90 && data1[0] + data1[1] + data1[2] <= 100)
 	{
-		if (data2[0] == 123 && data2[1] == 123 && data2[2] == 123)
+		if (data2[0] + data2[1] + data2[2] >= 60 && data2[0] + data2[1] + data2[2] <= 75)
 			return 1;
 		else
 			return false;
@@ -96,22 +91,30 @@ function mergeImage()
 	{
 		$("#errorLog").text('');
 		//getting the pixel data from the original image
+		var canvasWidth;
+		var canvasHeight;
+		
 		var img = document.getElementById('imageContainer');
+		var img2 = document.getElementById('image2Container');
+		
+		//choose the smaller one to be the canvas size
+		if (img.width > img2.width) canvasWidth = img2.width; else canvasWidth = img.width;
+		if (img.height > img2.height) canvasHeight = img2.height; else canvasHeight = img.height;
+		
 		var canvas = document.createElement('canvas');
-		canvas.width = img.width;
-		canvas.height = img.height;
+		canvas.width = canvasWidth;
+		canvas.height = canvasHeight;
 		canvas.getContext('2d').drawImage(img, 0, 0, img.width, img.height);
 		
-		var img2 = document.getElementById('image2Container');
 		var canvas2 = document.createElement('canvas');
-		canvas2.width = img2.width;
-		canvas2.height = img2.height;
+		canvas2.width = canvasWidth;
+		canvas2.height = canvasHeight;
 		canvas2.getContext('2d').drawImage(img2, 0, 0, img2.width, img2.height);
 		
 		//creating canvas in order to generate the picture
 		var resultCanvas = document.createElement('canvas');
-		resultCanvas.width = Math.max(img.width, img2.width);
-		resultCanvas.height = Math.max(img.height, img2.height);
+		resultCanvas.width = Math.min(img.width, img2.width);
+		resultCanvas.height = Math.min(img.height, img2.height);
 		var ctx = resultCanvas.getContext('2d');
 		var imgData = ctx.createImageData(resultCanvas.width, resultCanvas.height);
 		
@@ -120,13 +123,17 @@ function mergeImage()
 		var pixel2Data= canvas2.getContext('2d').getImageData(0, 0, canvas2.width, canvas2.height).data;
 		
 		var check = checkImage(pixelData, pixel2Data);
-		console.log(check);
 		
 		var pictureData = pixelData;
 		var formatData = pixel2Data;
 		
 		if (check)
 		{
+			if (check == 1)
+			{
+				pictureData = pixel2Data;
+				formatData = pixelData;
+			}
 			for (var i = 0; i < pictureData.length; i += 4)
 			{
 				var d1 = pictureData[i+0];
@@ -137,24 +144,47 @@ function mergeImage()
 				var r2 = formatData[i+1];
 				var r3 = formatData[i+2];
 				
-				d1 = (d1 - r1 + 255) % 255;
-				d2 = (d2 + r2) % 255;
-				d3 = (d3 - r3 + 255) % 255;
+				d1 = (d1 - r1 + 256) % 256;
+				d2 = (d2 + r2 + 256) % 256;
+				d3 = (d3 - r3 + 256) % 256;
 				
 				imgData.data[i+0] = d1;
 				imgData.data[i+1] = d2;
 				imgData.data[i+2] = d3;
-				imgData.data[i+3] = 255;
+				imgData.data[i+3] = pictureData[i+3];
 			}
 			
 			ctx.putImageData(imgData, 0, 0);
 		
 			//convert to png and set it to the tag
-			var outImage = resultCanvas.toDataURL("image/jpeg");
+			var outImage = resultCanvas.toDataURL("image/bmp", 1);
 	
 			$('#first_result').attr('src', outImage);
 		}
-		else{}
+		else{
+			//normally merge the image
+			 
+			for (var i = 0; i < pixel2Data.length; i++)
+			{
+				var a1 = pictureData[i+0];
+				var a2 = pictureData[i+1];
+				var a3 = pictureData[i+2];
+				
+				var b1 = formatData[i+0];
+				var b2 = formatData[i+1];
+				var b3 = formatData[i+2];
+				
+				imgData.data[i+0] = (a1 + b1) / 2;
+				imgData.data[i+1] = (a2 + b2) / 2;
+				imgData.data[i+2] = (a3 + b3) / 2;
+				imgData.data[i+3] = pictureData[i+3];
+			}
+			
+			ctx.putImageData(imgData, 0, 0);
+			
+			var outImage = resultCanvas.toDataURL("image/bmp", 1);
+			$('#first_result').attr('src', outImage); 
+		}
 	}
 	else
 	{
@@ -194,8 +224,8 @@ function splitImage()
 		//setting the left up most corner to inform the program about the image
 		for (var i = 0; i < 4; i++)
 		{
-			imgData.data[i] = 123;
-			imgData2.data[i] = 321;
+			imgData.data[i] = 23;
+			imgData2.data[i] = 32;
 		}
 		for (var i = 4; i < pixelData.length; i += 4)
 		{	
@@ -207,9 +237,9 @@ function splitImage()
 			var r2 = getRandomInt(255);
 			var r3 = getRandomInt(255);
 			
-			d1 = (d1 + r1) % 255;
-			d2 = (d2 - r2 + 255) % 255;
-			d3 = (d3 + r3) % 255;
+			d1 = (d1 + r1 + 256) % 256;
+			d2 = (d2 - r2 + 256) % 256;
+			d3 = (d3 + r3 + 256) % 256;
 			
 			imgData.data[i+0] = d1;
 			imgData.data[i+1] = d2;
@@ -218,15 +248,15 @@ function splitImage()
 			imgData2.data[i+1] = r2;
 			imgData2.data[i+2] = r3;
 			
-			imgData.data[i+3] = 255;
-			imgData2.data[i+3] = 255;
+			imgData.data[i+3] = pixelData[i+3];
+			imgData2.data[i+3] = pixelData[i+3];
 		}
 		ctx.putImageData(imgData, 0, 0);
 		ctx2.putImageData(imgData2, 0, 0);
 		
 		//convert to png and set it to the tag
-		var outImage1 = resultCanvas1.toDataURL("image/jpeg");
-		var outImage2 = resultCanvas2.toDataURL("image/jpeg");
+		var outImage1 = resultCanvas1.toDataURL("image/bmp", 1);
+		var outImage2 = resultCanvas2.toDataURL("image/bmp", 1);
 	
 		$('#first_result').attr('src', outImage1);
 		$('#second_result').attr('src', outImage2);

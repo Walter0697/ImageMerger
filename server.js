@@ -12,7 +12,6 @@ app.use(express.static(__dirname + '/public'));
 app.set('view engine', 'pug');
 
 app.get('*', function(req, res, next){
-	console.log("request for " + req.path);
 	next();
 })
 
