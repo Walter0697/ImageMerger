@@ -5,8 +5,8 @@ var split = true;
 
 $(document).ready(function(){
 	$('.allImage').attr('src', "assets/picture.png");
-	$(".merge").hide();
-	split = true;
+	$(".split").hide();
+	split = false;
 });
 
 function imageHandler(input, place)
@@ -151,7 +151,7 @@ function mergeImage()
 				imgData.data[i+0] = d1;
 				imgData.data[i+1] = d2;
 				imgData.data[i+2] = d3;
-				imgData.data[i+3] = pictureData[i+3];
+				imgData.data[i+3] = 255;
 			}
 			
 			ctx.putImageData(imgData, 0, 0);
@@ -177,7 +177,7 @@ function mergeImage()
 				imgData.data[i+0] = (a1 + b1) / 2;
 				imgData.data[i+1] = (a2 + b2) / 2;
 				imgData.data[i+2] = (a3 + b3) / 2;
-				imgData.data[i+3] = pictureData[i+3];
+				imgData.data[i+3] = 255;
 			}
 			
 			ctx.putImageData(imgData, 0, 0);
@@ -248,8 +248,8 @@ function splitImage()
 			imgData2.data[i+1] = r2;
 			imgData2.data[i+2] = r3;
 			
-			imgData.data[i+3] = pixelData[i+3];
-			imgData2.data[i+3] = pixelData[i+3];
+			imgData.data[i+3] = 255;
+			imgData2.data[i+3] = 255;
 		}
 		ctx.putImageData(imgData, 0, 0);
 		ctx2.putImageData(imgData2, 0, 0);
