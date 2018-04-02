@@ -4,7 +4,7 @@ var input2Image = null;
 var split = true;
 
 $(document).ready(function(){
-	$('.allImage').attr('src', "assets/picture.png");
+	$('.allImage').attr('src', "assets/spliter.png");
 	$(".split").hide();
 	split = false;
 });
@@ -35,7 +35,7 @@ function toMerge()
 {
 	inputImage = null;
 	input2Image = null;
-	$('.allImage').attr('src', "assets/picture.png");
+	$('.allImage').attr('src', "assets/spliter.png");
 	split = false;
 	$(".merge").show();
 	$(".split").hide();
@@ -45,7 +45,7 @@ function toSplit()
 {
 	inputImage = null;
 	input2Image = null;
-	$('.allImage').attr('src', "assets/picture.png");
+	$('.allImage').attr('src', "assets/spliter.png");
 	split = true;
 	$(".split").show();
 	$(".merge").hide();

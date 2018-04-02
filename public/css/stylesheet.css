@@ -3,6 +3,28 @@ body {
 	color : #0088FF;
 }
 
-*{
+input, button#confirm{
 	display : block;
+}
+
+#title{
+	text-align : center;
+}
+
+h1{
+	display : inline;
+	font-size: 50px;
+}
+
+button#switch{
+	text-align : center;
+}
+
+#second_result, #image2Container{
+	display : inline;
+	float : right;
+}
+
+#secondInput{
+	float : right;
 }
