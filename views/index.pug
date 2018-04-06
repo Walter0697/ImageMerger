@@ -11,25 +11,28 @@ html(lang='en')
 			img#icon(src="assets/icon.png")
 			h1 ImageMerger
 			
-		button#switch.split(onclick="toMerge()") Click here to merge images
-		button#switch.merge(onclick="toSplit()") Click here to split image
-
+		button.switch(onclick="toMerge()") Click here to merge images
+		button.switch(onclick="toSplit()") Click here to split image
+		button.switch(onclick="toAddCode()") Click here to add code to image
+		button.switch(onclick="toGetCode()") Click here to get code from image
+		
 		br
 		br
 		
-		input#inputImage.split(type="file" onchange='imageHandler(this, "1")' accept="image/jpeg, image/png") 
-		input#firstInput.merge(type="file" onchange='imageHandler(this, "1")' accept="image/jpeg, image/png") 
+		input#firstInput(type="file" onchange='imageHandler(this, "1")' accept="image/jpeg, image/png") 
 		input#secondInput.merge(type="file" onchange='imageHandler(this, "2")' accept="image/jpeg, image/png") 
+		br
+		input#textInput.addCode(type="text")
 		
 		p#errorLog
+		h2.getCode.addCode this one is still in BETA!!!
 		
 		br
 		img#imageContainer.allImage
 		img#image2Container.allImage.merge
 		
-		button#confirm(onclick="analysisImage()") Analysis Image
+		button#confirm(onclick="analysisImage()") Analysis
 		
-		img#first_result.allImage
+		img#first_result.allImage.merge.split.addCode
 		img#second_result.allImage.split
-		
-		
+		h2#textOutput.getCode 

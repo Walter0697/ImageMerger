@@ -1,12 +1,10 @@
 var inputImage = null;
 var input2Image = null;
 
-var split = true;
+var mode;
 
 $(document).ready(function(){
-	$('.allImage').attr('src', "assets/spliter.png");
-	$(".split").hide();
-	split = false;
+	toMerge();
 });
 
 function imageHandler(input, place)
@@ -31,24 +29,48 @@ function imageHandler(input, place)
 	}
 }
 
-function toMerge()
+function init()
 {
+	$('input').val('');
 	inputImage = null;
 	input2Image = null;
 	$('.allImage').attr('src', "assets/spliter.png");
-	split = false;
-	$(".merge").show();
 	$(".split").hide();
+	$(".merge").hide();
+	$(".addCode").hide();
+	$(".getCode").hide();
+}
+
+function toMerge()
+{
+	init();
+	
+	mode = "merge";
+	$(".merge").show();
 }
 
 function toSplit()
 {
-	inputImage = null;
-	input2Image = null;
-	$('.allImage').attr('src', "assets/spliter.png");
-	split = true;
+	init();
+	
+	mode = "split";
 	$(".split").show();
-	$(".merge").hide();
+}
+
+function toAddCode()
+{
+	init();
+	
+	mode = "addCode";
+	$(".addCode").show();
+}
+
+function toGetCode()
+{
+	init();
+	
+	mode = "getCode";
+	$(".getCode").show();
 }
 
 function getRandomInt(number)
@@ -56,12 +78,187 @@ function getRandomInt(number)
 	return Math.floor(Math.random() * Math.floor(number));
 }
 
+//really awesome way to think about it
+//code is from here: https://stackoverflow.com/questions/9939760/how-do-i-convert-an-integer-to-binary-in-javascript
+function dec2bin(dec){
+	return (dec >>> 0).toString(2);
+}
+
 function analysisImage()
 {
-	if (split)
+	if (mode == "split")
 		splitImage();
-	else 
+	else if (mode == "merge")
 		mergeImage();
+	else if (mode == "addCode")
+		addCode();
+	else if (mode == "getCode")
+		getCode();
+}
+
+function addCode()
+{
+	if (inputImage && $('#textInput').val() != "")
+	{
+		$("#errorLog").text('');
+		//getting the pixel data from the original image
+		var img = document.getElementById('imageContainer');
+		var canvas = document.createElement('canvas');
+		canvas.width = img.width;
+		canvas.height = img.height;
+		canvas.getContext('2d').drawImage(img, 0, 0, img.width, img.height);
+		
+		//creating canvas in order to generate picture
+		var resultCanvas = document.createElement('canvas');
+		resultCanvas.width = canvas.width;
+		resultCanvas.height = canvas.height;
+		
+		//creating drawing tools for canvas
+		var ctx = resultCanvas.getContext('2d');
+		var imgData = ctx.createImageData(resultCanvas.width, resultCanvas.height);
+		
+		//getting pixel information
+		var pixelData = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+	
+		//getting the text information
+		var secretCode = $('#textInput').val();
+		
+		//setting the left up most corner to inform the program about the image information
+		for (var i = 0; i < 4; i++)
+		{
+			imgData.data[i] = 44;
+		}
+		
+		var encodeValue = "";
+		var wordLength = secretCode.length;
+		//check number of digit in the length
+		encodeValue += wordLength.toString().length.toString();
+		encodeValue += wordLength.toString();
+		
+		for (var i = 0; i < wordLength; i++)
+		{
+			var asciiValue = secretCode.charAt(i).charCodeAt(0);
+			encodeValue += asciiValue.toString().length.toString();
+			encodeValue += asciiValue.toString();
+		}
+		
+		//put the encodeValue inside the picture
+		var currentIndex = 0;
+		for (var i = 4; i < pixelData.length; i += 4)
+		{
+			var d1 = pixelData[i+0];
+			var d2 = pixelData[i+1];
+			var d3 = pixelData[i+2];
+			var d4 = pixelData[i+3];
+			
+			if (currentIndex != encodeValue.length)
+			{
+				//get rid of the hundred digit
+				/*d1 = d1 - (Math.floor(d1 / 100)) * 100 + 1;
+				d2 = d2 - (Math.floor(d2 / 100)) * 100 + 1;
+				d3 = d3 - (Math.floor(d3 / 100)) * 100 + 1;
+				d4 = d4 - (Math.floor(d4 / 100)) * 100 + 1;*/
+				d1 = 50;
+				d2 = 50;
+				d3 = 50;
+				d4 = 50;
+			
+				var currentNumber = encodeValue.toString().charAt(currentIndex);
+				var toBinary = dec2bin(currentNumber);
+				d1 = d1 + Math.floor((toBinary / 1000) % 10) *100;
+				d2 = d2 + Math.floor((toBinary / 100) % 10) *100;
+				d3 = d3 + Math.floor((toBinary / 10) % 10) *100;
+				d4 = d4 + Math.floor((toBinary / 1) % 10) *100;
+				
+				currentIndex++;
+			}
+			
+			imgData.data[i+0] = d1;
+			imgData.data[i+1] = d2;
+			imgData.data[i+2] = d3;
+			imgData.data[i+3] = d4;
+		}
+		
+		ctx.putImageData(imgData, 0, 0);
+		
+		var outImage = resultCanvas.toDataURL("image/bmp", 1);
+		
+		$('#first_result').attr('src', outImage);	
+	}
+	else
+	{
+		$("#errorLog").text('Please upload an image and type a code');
+	}
+}
+
+function getCode()
+{
+	if (inputImage)
+	{
+		$('#errorLog').text('');
+		//getting the pixel data from the original images
+		var img = document.getElementById('imageContainer');
+		
+		var canvas = document.createElement('canvas');
+		canvas.height = img.height;
+		canvas.width = img.width;
+		canvas.getContext('2d').drawImage(img, 0, 0, img.width, img.height);
+		
+		//getting pixel information
+		var pixelData = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+		
+		var decodeValue = "";
+		var wordLength = -1;
+		var currentIndex = 0;
+		
+		var toCheck = -1;
+		var checking = "";
+		var quit = false;
+		for (var i = 4; i < pixelData.length; i += 4)
+		{
+			var d1 = Math.floor(pixelData[i+0] / 100);
+			var d2 = Math.floor(pixelData[i+1] / 100);
+			var d3 = Math.floor(pixelData[i+2] / 100);
+			var d4 = Math.floor(pixelData[i+3] / 100);
+			
+			var asciiValue = d1 * 1000 + d2 * 100 + d3 * 10 + d4;
+			var numberValue = parseInt(asciiValue, 2);
+			
+			if (toCheck == -1)
+			{
+				toCheck = numberValue;
+				checking = "";
+			}
+			else if (toCheck != 0)
+			{
+				checking += numberValue.toString();
+				toCheck--;
+			}
+			else
+			{
+				if (wordLength == -1)
+				{
+					wordLength = parseInt(checking);
+					toCheck = numberValue;
+					checking = "";
+				}
+				else if (wordLength != currentIndex)
+				{
+					decodeValue += String.fromCharCode(parseInt(checking));
+					toCheck = numberValue;
+					checking = "";
+					currentIndex++;
+					$("#textOutput").text("Analysing Code : " + decodeValue);
+					if (wordLength == currentIndex) quit = true;
+				}
+			}
+			
+			if (quit) break;
+		}
+		
+		$("#textOutput").text("Your Code is : " + decodeValue);
+		
+	}
 }
 
 function checkImage(data1, data2)
@@ -204,7 +401,7 @@ function splitImage()
 		canvas.height = img.height;
 		canvas.getContext('2d').drawImage(img, 0, 0, img.width, img.height);
 		
-		//creating two canvas in order to generate two picture
+		//creating two canvases in order to generate two picture
 		var resultCanvas1 = document.createElement('canvas');
 		resultCanvas1.width = img.width;
 		resultCanvas1.height = img.height;

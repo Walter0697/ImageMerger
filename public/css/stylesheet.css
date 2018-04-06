@@ -16,8 +16,10 @@ h1{
 	font-size: 50px;
 }
 
-button#switch{
+button.switch{
 	text-align : center;
+	padding : 5px;
+	margin : 5px;
 }
 
 #second_result, #image2Container{
