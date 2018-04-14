@@ -126,7 +126,7 @@ function addCode()
 		//setting the left up most corner to inform the program about the image information
 		for (var i = 0; i < 4; i++)
 		{
-			imgData.data[i] = 44;
+			imgData.data[i] = 144;
 		}
 		
 		var encodeValue = "";
@@ -144,20 +144,17 @@ function addCode()
 		
 		//put the encodeValue inside the picture
 		var currentIndex = 0;
-		for (var i = 4; i < pixelData.length; i += 4)
+		var currenti = 0;
+		for (var i = 4; i < pixelData.length; i += 16)
 		{
-			var d1 = pixelData[i+0];
-			var d2 = pixelData[i+1];
-			var d3 = pixelData[i+2];
-			var d4 = pixelData[i+3];
+			var d1 = pixelData[i+3];
+			var d2 = pixelData[i+7];
+			var d3 = pixelData[i+11];
+			var d4 = pixelData[i+15];
+			currenti = i + 16;
 			
 			if (currentIndex != encodeValue.length)
 			{
-				//get rid of the hundred digit
-				/*d1 = d1 - (Math.floor(d1 / 100)) * 100 + 1;
-				d2 = d2 - (Math.floor(d2 / 100)) * 100 + 1;
-				d3 = d3 - (Math.floor(d3 / 100)) * 100 + 1;
-				d4 = d4 - (Math.floor(d4 / 100)) * 100 + 1;*/
 				d1 = 50;
 				d2 = 50;
 				d3 = 50;
@@ -172,11 +169,24 @@ function addCode()
 				
 				currentIndex++;
 			}
+			else
+			{
+				break;
+			}
 			
-			imgData.data[i+0] = d1;
-			imgData.data[i+1] = d2;
-			imgData.data[i+2] = d3;
-			imgData.data[i+3] = d4;
+			for (var j = 0; j < 16; j++)
+			{
+				imgData.data[i+j] = pixelData[i+j];
+			}
+			imgData.data[i+3] = d1;
+			imgData.data[i+7] = d2;
+			imgData.data[i+11] = d3;
+			imgData.data[i+15] = d4;
+		}
+		
+		for (var i = currenti; i < pixelData.length; i++)
+		{
+			imgData.data[i] = pixelData[i];
 		}
 		
 		ctx.putImageData(imgData, 0, 0);
@@ -214,49 +224,98 @@ function getCode()
 		var toCheck = -1;
 		var checking = "";
 		var quit = false;
-		for (var i = 4; i < pixelData.length; i += 4)
+		if (pixelData[0] > 100)
 		{
-			var d1 = Math.floor(pixelData[i+0] / 100);
-			var d2 = Math.floor(pixelData[i+1] / 100);
-			var d3 = Math.floor(pixelData[i+2] / 100);
-			var d4 = Math.floor(pixelData[i+3] / 100);
-			
-			var asciiValue = d1 * 1000 + d2 * 100 + d3 * 10 + d4;
-			var numberValue = parseInt(asciiValue, 2);
-			
-			if (toCheck == -1)
+			for (var i = 4; i < pixelData.length; i += 16)
 			{
-				toCheck = numberValue;
-				checking = "";
-			}
-			else if (toCheck != 0)
-			{
-				checking += numberValue.toString();
-				toCheck--;
-			}
-			else
-			{
-				if (wordLength == -1)
+				var d1 = Math.floor(pixelData[i+3] / 100);
+				var d2 = Math.floor(pixelData[i+7] / 100);
+				var d3 = Math.floor(pixelData[i+11] / 100);
+				var d4 = Math.floor(pixelData[i+15] / 100);
+				
+				var asciiValue = d1 * 1000 + d2 * 100 + d3 * 10 + d4;
+				var numberValue = parseInt(asciiValue, 2);
+				
+				if (toCheck == -1)
 				{
-					wordLength = parseInt(checking);
 					toCheck = numberValue;
 					checking = "";
 				}
-				else if (wordLength != currentIndex)
+				else if (toCheck != 0)
 				{
-					decodeValue += String.fromCharCode(parseInt(checking));
-					toCheck = numberValue;
-					checking = "";
-					currentIndex++;
-					$("#textOutput").text("Analysing Code : " + decodeValue);
-					if (wordLength == currentIndex) quit = true;
+					checking += numberValue.toString();
+					toCheck--;
 				}
+				else
+				{
+					if (wordLength == -1)
+					{
+						wordLength = parseInt(checking);
+						toCheck = numberValue;
+						checking = "";
+					}
+					else if (wordLength != currentIndex)
+					{
+						decodeValue += String.fromCharCode(parseInt(checking));
+						toCheck = numberValue;
+						checking = "";
+						currentIndex++;
+						$("#textOutput").text("Analysing Code : " + decodeValue);
+						if (wordLength == currentIndex) quit = true;
+					}
+				}
+				
+				if (quit) break;
 			}
 			
-			if (quit) break;
+			$("#textOutput").text("Your Code is : " + decodeValue);
 		}
-		
-		$("#textOutput").text("Your Code is : " + decodeValue);
+		else
+		{
+			for (var i = 4; i < pixelData.length; i += 4)
+			{
+				var d1 = Math.floor(pixelData[i+0] / 100);
+				var d2 = Math.floor(pixelData[i+1] / 100);
+				var d3 = Math.floor(pixelData[i+2] / 100);
+				var d4 = Math.floor(pixelData[i+3] / 100);
+				
+				var asciiValue = d1 * 1000 + d2 * 100 + d3 * 10 + d4;
+				var numberValue = parseInt(asciiValue, 2);
+				
+				if (toCheck == -1)
+				{
+					toCheck = numberValue;
+					checking = "";
+				}
+				else if (toCheck != 0)
+				{
+					checking += numberValue.toString();
+					toCheck--;
+				}
+				else
+				{
+					if (wordLength == -1)
+					{
+						wordLength = parseInt(checking);
+						toCheck = numberValue;
+						checking = "";
+					}
+					else if (wordLength != currentIndex)
+					{
+						decodeValue += String.fromCharCode(parseInt(checking));
+						toCheck = numberValue;
+						checking = "";
+						currentIndex++;
+						$("#textOutput").text("Analysing Code : " + decodeValue);
+						if (wordLength == currentIndex) quit = true;
+					}
+				}
+				
+				if (quit) break;
+			}
+			
+			$("#textOutput").text("Your Code is : " + decodeValue);
+		}
 		
 	}
 }
@@ -348,7 +407,7 @@ function mergeImage()
 				imgData.data[i+0] = d1;
 				imgData.data[i+1] = d2;
 				imgData.data[i+2] = d3;
-				imgData.data[i+3] = 255;
+				imgData.data[i+3] = pictureData[i+3];
 			}
 			
 			ctx.putImageData(imgData, 0, 0);
@@ -441,12 +500,12 @@ function splitImage()
 			imgData.data[i+0] = d1;
 			imgData.data[i+1] = d2;
 			imgData.data[i+2] = d3;
-			imgData2.data[i+0] = r1;
+			imgData2.data[i+0] = r1; 
 			imgData2.data[i+1] = r2;
 			imgData2.data[i+2] = r3;
 			
-			imgData.data[i+3] = 255;
-			imgData2.data[i+3] = 255;
+			imgData.data[i+3] = pixelData[i+3];
+			imgData2.data[i+3] = pixelData[i+3];
 		}
 		ctx.putImageData(imgData, 0, 0);
 		ctx2.putImageData(imgData2, 0, 0);
